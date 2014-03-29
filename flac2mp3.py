@@ -24,7 +24,7 @@
 """converts folder with flacs to mp3s perserving ID3 tags
 
 Script creates new folder with transcoded mp3s in argumented folder.
-Works on UNIX using flac, lame and id3tag. Deconding and encoding works
+Works on UNIX using flac and lame. Deconding and encoding works
 in paralel.
 
 arguments:
@@ -55,19 +55,14 @@ if __name__ == '__main__':
 	try:
 		os.mkdir(out_dir)
 	except FileExistsError:
-		pass
 		print("Converted folder exists, files yet coverted?")
-		#exit(1)
+		exit(1)
 		
-	#pprint.pprint(sorted(os.listdir(work_dir)))
 	
 	flacs2con = []
 	for file_in_dir in sorted(os.listdir(work_dir)):
 		if file_in_dir.endswith(".flac"):
 			flacs2con.append(file_in_dir)
-	
-	#print(flacs2con)
-	#print(work_dir)
 	
 	with tempfile.TemporaryDirectory() as tmpdir:
 		os.chdir(tmpdir)
@@ -82,8 +77,9 @@ if __name__ == '__main__':
 			id3_file = f_name + '.id3'
 			wav_file = f_name + '.wav'
 			
-			
+			#extract metadata for id3 tags
 			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file), work_dir + flac_file], stdout=FNULL, stderr=FNULL)
+			#decode flacs to wavs
 			flac_p = subprocess.Popen(['flac', '-d', work_dir + flac_file, '-o', wav_file], stdout=FNULL, stderr=FNULL)
 			print("Decoding", flac_file, "...")
 			proc_list.append(flac_p)
@@ -102,7 +98,6 @@ if __name__ == '__main__':
 			if file_in_dir.endswith(".wav"):
 				wavs2con.append(file_in_dir)
 		
-		#pprint.pprint(os.listdir(tmpdir))
 		
 		#encode wavs to mp3s
 		for wav_file in wavs2con:
@@ -111,15 +106,16 @@ if __name__ == '__main__':
 			id3_file = f_name + '.id3'
 			
 			id3_tags = {"TITLE":"", "ARTIST":"", "ALBUM":"", "ALBUM":"", "DATE":"", "TRACKNUMBER":"0"}
+			
+			#generate id3 from file
 			with open(id3_file, encoding='utf-8') as opened_id3_file:
 				for line in opened_id3_file:
 					id3_tags[line.split('=',1)[0]] = line.split('=',1)[1].strip('\n')
 			
-			#pprint.pprint(id3_tags)
 			
 			id3_tags_arg = []
 			
-			
+			#encode wav to mp3 with id3 tags
 			p = subprocess.Popen(['lame', '-h', '--abr', str(args.a), "--tt",
 			id3_tags['TITLE'], "--ta", id3_tags['ARTIST'], '--tl', id3_tags['ALBUM'], 
 			'--ty', id3_tags['DATE'], '--tn', id3_tags['TRACKNUMBER'],
@@ -132,6 +128,7 @@ if __name__ == '__main__':
 				proc_list[0].wait()
 				del proc_list[0]
 		
+		#wait for remaining runnig processes
 		for proc in proc_list:
 			proc.wait()
 		
