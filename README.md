@@ -1,4 +1,4 @@
-flac2mp3.py - converts folder with flacs to mp3s
+flac2mp3.py
 =============================
 
 Description
