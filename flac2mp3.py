@@ -21,7 +21,11 @@
 #  
 #  
 
-"""converts folder with flacs to mp3s
+"""converts folder with flacs to mp3s perserving ID3 tags
+
+Script creates new folder with transcoded mp3s in argumented folder.
+Works on UNIX using flac, lame and id3tag. Deconding and encoding works
+in paralel.
 
 arguments:
 Arguments can be listed with running script with -h
@@ -38,19 +42,103 @@ import pprint
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='flac2mp3')
+	
 	parser.add_argument('folder', help="folder with flacs to convert")
+	parser.add_argument('-p', type=int, default=2, help="number of paralel processes")
+	parser.add_argument('-a', type=int, default=256, help="value of ABR")
+	
 	args = parser.parse_args()
 	
 	work_dir = args.folder
+	out_dir = str(work_dir) + "/flac2mp3_converted"
 	
 	try:
-		os.mkdir(str(work_dir) + "/flac2mp3_converted")
+		os.mkdir(out_dir)
 	except FileExistsError:
 		pass
-		print("Converted folder exists, yet coverted?")
+		print("Converted folder exists, files yet coverted?")
 		#exit(1)
 		
-	pprint.pprint(sorted(os.listdir(work_dir)))
+	#pprint.pprint(sorted(os.listdir(work_dir)))
+	
+	flacs2con = []
+	for file_in_dir in sorted(os.listdir(work_dir)):
+		if file_in_dir.endswith(".flac"):
+			flacs2con.append(file_in_dir)
+	
+	#print(flacs2con)
+	#print(work_dir)
+	
+	with tempfile.TemporaryDirectory() as tmpdir:
+		os.chdir(tmpdir)
+		FNULL = open('/dev/null', 'w')
+		
+		proc_list = list()
+		
+		#decode flacs to wavs
+		for flac_file in flacs2con:
+			
+			f_name = flac_file.rsplit('.',1)[0]
+			id3_file = f_name + '.id3'
+			wav_file = f_name + '.wav'
+			
+			
+			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file), work_dir + flac_file], stdout=FNULL, stderr=FNULL)
+			flac_p = subprocess.Popen(['flac', '-d', work_dir + flac_file, '-o', wav_file], stdout=FNULL, stderr=FNULL)
+			print("Decoding", flac_file, "...")
+			proc_list.append(flac_p)
+			
+			if len(proc_list) >= args.p:
+				proc_list[0].wait()
+				del proc_list[0]
+			
+			id3_p.wait()
+		
+		for proc in proc_list:
+			proc.wait()
+		
+		wavs2con = []
+		for file_in_dir in sorted(os.listdir(tmpdir)):
+			if file_in_dir.endswith(".wav"):
+				wavs2con.append(file_in_dir)
+		
+		#pprint.pprint(os.listdir(tmpdir))
+		
+		#encode wavs to mp3s
+		for wav_file in wavs2con:
+			f_name = wav_file.rsplit('.',1)[0]
+			mp3_file = f_name + '.mp3'
+			id3_file = f_name + '.id3'
+			
+			id3_tags = {"TITLE":"", "ARTIST":"", "ALBUM":"", "ALBUM":"", "DATE":"", "TRACKNUMBER":"0"}
+			with open(id3_file, encoding='utf-8') as opened_id3_file:
+				for line in opened_id3_file:
+					id3_tags[line.split('=',1)[0]] = line.split('=',1)[1].strip('\n')
+			
+			#pprint.pprint(id3_tags)
+			
+			id3_tags_arg = []
+			
+			
+			p = subprocess.Popen(['lame', '-h', '--abr', str(args.a), "--tt",
+			id3_tags['TITLE'], "--ta", id3_tags['ARTIST'], '--tl', id3_tags['ALBUM'], 
+			'--ty', id3_tags['DATE'], '--tn', id3_tags['TRACKNUMBER'],
+			tmpdir + '/' + wav_file, out_dir + '/' + mp3_file], stdout=FNULL, stderr=FNULL)
+			
+			print("Encoding", mp3_file, "...")
+			proc_list.append(p)
+			
+			if len(proc_list) >= args.p:
+				proc_list[0].wait()
+				del proc_list[0]
+		
+		for proc in proc_list:
+			proc.wait()
+		
+		FNULL.close()
+			
+			
+	
 	
 	
 	
