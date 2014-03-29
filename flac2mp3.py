@@ -133,11 +133,3 @@ if __name__ == '__main__':
 			proc.wait()
 		
 		FNULL.close()
-			
-			
-	
-	
-	
-	
-
-
