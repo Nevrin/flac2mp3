@@ -33,11 +33,9 @@ Arguments can be listed with running script with -h
 """
 
 import argparse
-import re
 import os
 import tempfile
 import subprocess
-import pprint
 
 
 if __name__ == '__main__':
