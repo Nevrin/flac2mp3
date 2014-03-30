@@ -8,7 +8,7 @@ Description
  * works in parallel
  * perserving ID3 tags
  
-Use
+Usage
 --------
 <code>./flac2mp3.py folder_with_flacs output_folder</code>
 
