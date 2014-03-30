@@ -37,7 +37,6 @@ import os
 import tempfile
 import subprocess
 
-
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='flac2mp3')
 	
@@ -48,7 +47,7 @@ if __name__ == '__main__':
 	
 	args = parser.parse_args()
 	
-	work_dir = args.input_folder
+	work_dir = os.path.abspath(args.input_folder)
 	out_dir = str(os.path.abspath(args.output_folder))
 		
 	flacs2con = []
@@ -70,9 +69,9 @@ if __name__ == '__main__':
 			wav_file = f_name + '.wav'
 			
 			#extract metadata for id3 tags
-			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file), work_dir + flac_file], stdout=FNULL, stderr=FNULL)
+			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file), work_dir + "/" + flac_file], stdout=FNULL, stderr=FNULL)
 			#decode flacs to wavs
-			flac_p = subprocess.Popen(['flac', '-d', work_dir + flac_file, '-o', wav_file], stdout=FNULL, stderr=FNULL)
+			flac_p = subprocess.Popen(['flac', '-d', work_dir + "/" + flac_file, '-o', wav_file], stdout=FNULL, stderr=FNULL)
 			print("Decoding", flac_file, "...")
 			proc_list.append(flac_p)
 			
@@ -98,7 +97,7 @@ if __name__ == '__main__':
 			id3_tags = {"TITLE":"", "ARTIST":"", "ALBUM":"", "ALBUM":"", "DATE":"", "TRACKNUMBER":"0"}
 			
 			#generate id3 from file
-			with open(id3_file, encoding='utf-8') as opened_id3_file:
+			with open(tmpdir + "/" +id3_file, encoding='utf-8') as opened_id3_file:
 				for line in opened_id3_file:
 					id3_tags[line.split('=',1)[0]] = line.split('=',1)[1].strip('\n')
 			
