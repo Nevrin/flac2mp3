@@ -69,9 +69,11 @@ if __name__ == '__main__':
 			wav_file = f_name + '.wav'
 			
 			#extract metadata for id3 tags
-			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file), work_dir + "/" + flac_file], stdout=FNULL, stderr=FNULL)
+			id3_p = subprocess.Popen(['metaflac', "--export-tags-to={0}".format(id3_file),
+			work_dir + "/" + flac_file], stdout=FNULL, stderr=FNULL)
 			#decode flacs to wavs
-			flac_p = subprocess.Popen(['flac', '-d', work_dir + "/" + flac_file, '-o', wav_file], stdout=FNULL, stderr=FNULL)
+			flac_p = subprocess.Popen(['flac', '-d', work_dir + "/" + flac_file,
+			'-o', wav_file], stdout=FNULL, stderr=FNULL)
 			print("Decoding", flac_file, "...")
 			proc_list.append(flac_p)
 			
@@ -94,14 +96,13 @@ if __name__ == '__main__':
 			mp3_file = f_name + '.mp3'
 			id3_file = f_name + '.id3'
 			
-			id3_tags = {"TITLE":"", "ARTIST":"", "ALBUM":"", "ALBUM":"", "DATE":"", "TRACKNUMBER":"0"}
+			id3_tags = {"TITLE":"", "ARTIST":"", "ALBUM":"", "ALBUM":"",
+			"DATE":"", "TRACKNUMBER":"0"}
 			
 			#generate id3 from file
-			with open(tmpdir + "/" +id3_file, encoding='utf-8') as opened_id3_file:
+			with open(tmpdir + "/" + id3_file, encoding='utf-8') as opened_id3_file:
 				for line in opened_id3_file:
 					id3_tags[line.split('=',1)[0]] = line.split('=',1)[1].strip('\n')
-			
-			id3_tags_arg = []
 			
 			#encode wav to mp3 with id3 tags
 			p = subprocess.Popen(['lame', '-h', '--abr', str(args.a), "--tt",
@@ -116,7 +117,7 @@ if __name__ == '__main__':
 				proc_list[0].wait()
 				del proc_list[0]
 		
-		#wait for remaining runnig processes
+		#wait for remaining runnig lame processes
 		for proc in proc_list:
 			proc.wait()
 		
