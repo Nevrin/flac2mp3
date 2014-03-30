@@ -48,7 +48,7 @@ if __name__ == '__main__':
 	args = parser.parse_args()
 	
 	work_dir = os.path.abspath(args.input_folder)
-	out_dir = str(os.path.abspath(args.output_folder))
+	out_dir = os.path.abspath(args.output_folder)
 		
 	flacs2con = []
 	for file_in_dir in sorted(os.listdir(work_dir)):
