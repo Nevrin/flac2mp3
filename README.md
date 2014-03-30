@@ -10,7 +10,7 @@ Description
  
 Use
 --------
-<code>./flac2mp3.py my_folder</code>
+<code>./flac2mp3.py folder_with_flacs output_folder</code>
 
 Help and arguments
 --------

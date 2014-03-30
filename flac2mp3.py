@@ -43,22 +43,16 @@ import pprint
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser(description='flac2mp3')
 	
-	parser.add_argument('folder', help="folder with flacs to convert")
+	parser.add_argument('input_folder', help="folder with flacs to convert")
+	parser.add_argument('output_folder', help="folder with output mp3s")
 	parser.add_argument('-p', type=int, default=2, help="number of paralel processes")
 	parser.add_argument('-a', type=int, default=256, help="value of ABR")
 	
 	args = parser.parse_args()
 	
-	work_dir = args.folder
-	out_dir = str(work_dir) + "/flac2mp3_converted"
-	
-	try:
-		os.mkdir(out_dir)
-	except FileExistsError:
-		print("Converted folder exists, files yet coverted?")
-		exit(1)
+	work_dir = args.input_folder
+	out_dir = str(os.path.abspath(args.output_folder))
 		
-	
 	flacs2con = []
 	for file_in_dir in sorted(os.listdir(work_dir)):
 		if file_in_dir.endswith(".flac"):
@@ -86,10 +80,9 @@ if __name__ == '__main__':
 			
 			if len(proc_list) >= args.p:
 				proc_list[0].wait()
-				del proc_list[0]
-			
+				del proc_list[0]		
 			id3_p.wait()
-		
+	
 		for proc in proc_list:
 			proc.wait()
 		
@@ -97,7 +90,6 @@ if __name__ == '__main__':
 		for file_in_dir in sorted(os.listdir(tmpdir)):
 			if file_in_dir.endswith(".wav"):
 				wavs2con.append(file_in_dir)
-		
 		
 		#encode wavs to mp3s
 		for wav_file in wavs2con:
@@ -111,7 +103,6 @@ if __name__ == '__main__':
 			with open(id3_file, encoding='utf-8') as opened_id3_file:
 				for line in opened_id3_file:
 					id3_tags[line.split('=',1)[0]] = line.split('=',1)[1].strip('\n')
-			
 			
 			id3_tags_arg = []
 			
