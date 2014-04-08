@@ -49,12 +49,9 @@ if __name__ == '__main__':
 	
 	work_dir = os.path.abspath(args.input_folder)
 	out_dir = os.path.abspath(args.output_folder)
-		
-	flacs2con = []
-	for file_in_dir in sorted(os.listdir(work_dir)):
-		if file_in_dir.endswith(".flac"):
-			flacs2con.append(file_in_dir)
 	
+	flacs2con = [file_in_dir for file_in_dir in sorted(os.listdir(work_dir)) if file_in_dir.endswith(".flac")]
+					
 	with tempfile.TemporaryDirectory() as tmpdir:
 		os.chdir(tmpdir)
 		FNULL = open('/dev/null', 'w')
@@ -85,11 +82,8 @@ if __name__ == '__main__':
 		for proc in proc_list:
 			proc.wait()
 		
-		wavs2con = []
-		for file_in_dir in sorted(os.listdir(tmpdir)):
-			if file_in_dir.endswith(".wav"):
-				wavs2con.append(file_in_dir)
-		
+		wavs2con = [file_in_dir for file_in_dir in sorted(os.listdir(tmpdir)) if file_in_dir.endswith(".wav")]
+				
 		#encode wavs to mp3s
 		for wav_file in wavs2con:
 			f_name = wav_file.rsplit('.',1)[0]
